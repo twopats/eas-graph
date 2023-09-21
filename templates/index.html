@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title></title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href="static/css/styles.css" rel="stylesheet">
+	<link rel="icon" type="image/x-icon" href="static/images/favicon.png">
+</head>
+
+<body>
+	<div id="cy"></div>
+	<!-- <script src="static/js/scripts.js"></script> -->
+	<script src='https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js'></script>
+	<script>
+		var cy = cytoscape({
+			container: document.getElementById('cy'), // container to render in
+
+			elements: [ // list of graph elements to start with
+				{ // node a
+					data: {id: 'a'}
+				},
+				{ // node b
+					data: {id: 'b'}
+				},
+				{ // edge ab
+					data: {id: 'ab', source: 'a', target: 'b'}
+				}
+			],
+
+			style: [ // the stylesheet for the graph
+				{
+					selector: 'node',
+					style: {
+						'background-color': 'blue',
+						'label': 'data(id)'
+					}
+				},
+
+				{
+					selector: 'edge',
+					style: {
+						'width': 3,
+						'line-color': '#ccc',
+						'target-arrow-color': '#ccc',
+						'target-arrow-shape': 'triangle',
+						'curve-style': 'bezier'
+					}
+				}
+			],
+
+			layout: {
+				name: 'grid',
+				rows: 1
+			}
+
+		});
+
+	</script>
+</body>
+
+</html>
