@@ -10,54 +10,56 @@
 </head>
 
 <body>
-	<div id="cy"></div>
-	<!-- <script src="static/js/scripts.js"></script> -->
-	<script src='https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.26.0/cytoscape.min.js'></script>
-	<script>
-		var cy = cytoscape({
-			container: document.getElementById('cy'), // container to render in
 
-			elements: [ // list of graph elements to start with
-				{ // node a
-					data: {id: 'a'}
-				},
-				{ // node b
-					data: {id: 'b'}
-				},
-				{ // edge ab
-					data: {id: 'ab', source: 'a', target: 'b'}
-				}
-			],
+	<div class="layout">
 
-			style: [ // the stylesheet for the graph
-				{
-					selector: 'node',
-					style: {
-						'background-color': 'blue',
-						'label': 'data(id)'
-					}
-				},
-
-				{
-					selector: 'edge',
-					style: {
-						'width': 3,
-						'line-color': '#ccc',
-						'target-arrow-color': '#ccc',
-						'target-arrow-shape': 'triangle',
-						'curve-style': 'bezier'
-					}
-				}
-			],
-
-			layout: {
-				name: 'grid',
-				rows: 1
-			}
-
-		});
-
-	</script>
+		<div class="layout__menu"></div>
+		<div id="container"></div>
+	</div>
 </body>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script type="module">
+
+	// Declare the chart dimensions and margins.
+	const width = container.clientWidth * 0.75;
+	const height = container.clientHeight * 0.75;
+	const marginTop = 20;
+	const marginRight = 20;
+	const marginBottom = 30;
+	const marginLeft = 40;
+
+	// Specify the color scale.
+	const color = d3.scaleOrdinal(d3.schemeCategory10);
+
+	// Declare the x (horizontal position) scale.
+	const x = d3.scaleUtc()
+		.domain([new Date("2023-01-01"), new Date("2024-01-01")])
+		.range([marginLeft, width - marginRight]);
+
+	// Declare the y (vertical position) scale.
+	const y = d3.scaleLinear()
+		.domain([0, 100])
+		.range([height - marginBottom, marginTop]);
+
+	// Create the SVG container.
+	const svg = d3.create("svg")
+		.attr("width", width)
+		.attr("height", height);
+
+	// Add the x-axis.
+	svg.append("g")
+		.attr("transform", `translate(0,${height - marginBottom})`)
+		.call(d3.axisBottom(x));
+
+	// Add the y-axis.
+	svg.append("g")
+		.attr("transform", `translate(${marginLeft},0)`)
+		.call(d3.axisLeft(y));
+
+	// Append the SVG element.
+	container.append(svg.node());
+
+</script>
 
 </html>
