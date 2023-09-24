@@ -1,65 +1,234 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html/ <html lang="en">
 
 <head>
-	<title></title>
 	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link href="static/css/styles.css" rel="stylesheet">
-	<link rel="icon" type="image/x-icon" href="static/images/favicon.png">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Force-Directed Graph</title>
+	<!-- <link rel="stylesheet" href="static/css/styles.css"> -->
+	<style>
+		/*
+  1. Use a more-intuitive box-sizing model.
+*/
+		*,
+		*::before,
+		*::after {
+			box-sizing: border-box;
+		}
+
+		/*
+  2. Remove default margin
+*/
+		* {
+			margin: 0;
+		}
+
+		/*
+  Typographic tweaks!
+  3. Add accessible line-height
+  4. Improve text rendering
+*/
+		body {
+			line-height: 1.5;
+			-webkit-font-smoothing: antialiased;
+		}
+
+		/*
+  5. Improve media defaults
+*/
+		img,
+		picture,
+		video,
+		canvas,
+		svg {
+			display: block;
+			max-width: 100%;
+		}
+
+		/*
+  6. Remove built-in form typography styles
+*/
+		input,
+		button,
+		textarea,
+		select {
+			font: inherit;
+		}
+
+		/*
+  7. Avoid text overflows
+*/
+		p,
+		h1,
+		h2,
+		h3,
+		h4,
+		h5,
+		h6 {
+			overflow-wrap: break-word;
+		}
+
+		/*
+  8. Create a root stacking context
+*/
+		#root,
+		#__next {
+			isolation: isolate;
+		}
+
+		/* custom */
+
+		body {
+			width: 100vw;
+			height: 100vh;
+			/* background-color: black; */
+			color: white;
+		}
+
+		.layout {
+			display: flex;
+			height: 100%;
+			width: 100%;
+		}
+
+		.layout__menu {
+			width: 320;
+			height: 100%;
+			border: 1px solid #ccc;
+			background-color: blue;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			padding: 1em;
+		}
+
+		.layout__menu-input {
+			background-color: transparent;
+			border: none;
+			border-bottom: 1px solid #ccc;
+			color: white;
+		}
+
+
+
+		#graph {
+
+			flex-grow: 1;
+			background-color: black;
+		}
+	</style>
 </head>
 
-<body>
-
+<body style="width: 100vw; height: 100vh;">
 	<div class="layout">
-
-		<div class="layout__menu"></div>
-		<div id="container"></div>
+		<div class="layout__menu" style="color: red;">
+			<input type="text" class="layout__menu-input">
+		</div>
+		<svg id="graph"></svg>
 	</div>
 </body>
 
-<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="https://d3js.org/d3.v6.min.js"></script>
+<!-- <script src="static/js/script.js"></script> -->
+
 <script type="module">
 
-	// Declare the chart dimensions and margins.
-	const width = container.clientWidth * 0.75;
-	const height = container.clientHeight * 0.75;
-	const marginTop = 20;
-	const marginRight = 20;
-	const marginBottom = 30;
-	const marginLeft = 40;
+	//data
 
-	// Specify the color scale.
-	const color = d3.scaleOrdinal(d3.schemeCategory10);
+	const data = {
+		nodes: Array.from({length: 10}, (_, i) => ({
+			id: `Tag${i}`,
+			fitness: Math.random()
+		})),
+		links: Array.from({length: 10}, (_, i) => ({
+			source: `Tag${i}`,
+			target: `Tag${Math.floor(Math.random() * 10)}`,
+			fitness: Math.random()
+		}))
+	}
 
-	// Declare the x (horizontal position) scale.
-	const x = d3.scaleUtc()
-		.domain([new Date("2023-01-01"), new Date("2024-01-01")])
-		.range([marginLeft, width - marginRight]);
+	//data end
 
-	// Declare the y (vertical position) scale.
-	const y = d3.scaleLinear()
-		.domain([0, 100])
-		.range([height - marginBottom, marginTop]);
+	// const data = fetch("../data/data.json")
+	// 	.then(response => response.json())
+	// 	.then(data => {
+	// 		console.log(data);
+	// 		return data;
+	// 	});
 
-	// Create the SVG container.
-	const svg = d3.create("svg")
+	const width = 1000;
+	const height = 1000;
+	let transform = d3.zoomIdentity; // const links = data.links.filter(l => l.fitness > minFitness).map(d => Object.create(d))
+	const links = data.links
+	const nodes = data.nodes.map(d => Object.create(d));
+
+	const simulation = d3.forceSimulation(nodes)
+		.force("link", d3.forceLink(links).id(d => d.id)
+			.distance((d) => 30 + 30 * (1 - d.fitness))
+			.strength(0.1)
+		)
+		.force("charge", d3.forceManyBody()
+			.strength(-100)
+		)
+		.force("x", d3.forceX())
+		.force("y", d3.forceY());
+
+	const svg = d3.select("#graph")
+
+	const link = svg.append("g")
+		.attr("stroke", "#999")
+		.attr("stroke-opacity", 0.3)
+		.selectAll("line")
+		.data(links)
+		.enter().append("line")
+		.attr("stroke-width", d => 0.5 + 1 * d.fitness);
+
+	const zoomRect = svg.append("rect")
 		.attr("width", width)
-		.attr("height", height);
+		.attr("height", height)
+		.style("fill", "none")
+		.style("pointer-events", "all")
 
-	// Add the x-axis.
-	svg.append("g")
-		.attr("transform", `translate(0,${height - marginBottom})`)
-		.call(d3.axisBottom(x));
+	const node = svg.append("g")
+		.attr("stroke", "#fff")
+		.attr("stroke-width", 1.5)
+		.selectAll("circle")
+		.data(nodes)
+		.enter().append("circle")
+		.attr("r", 5)
+		.attr("fill", "blue");
 
-	// Add the y-axis.
-	svg.append("g")
-		.attr("transform", `translate(${marginLeft},0)`)
-		.call(d3.axisLeft(y));
+	const zoom = d3.zoom()
+		.scaleExtent([1 / 2, 64])
+		.on("zoom", zoomed);
 
-	// Append the SVG element.
-	container.append(svg.node());
+	zoomRect.call(zoom)
+		.call(zoom.translateTo, 0, 0);
 
+	node.append("title")
+		.text(d => d.id);
+
+	simulation.on("tick", () => {
+		link
+			.attr("x1", d => d.source.x)
+			.attr("y1", d => d.source.y)
+			.attr("x2", d => d.target.x)
+			.attr("y2", d => d.target.y);
+
+		node
+			.attr("cx", d => d.x)
+			.attr("cy", d => d.y);
+	});
+
+
+
+	function zoomed(event) {
+		transform = event.transform;
+		node.attr("transform", event.transform);
+		link.attr("transform", event.transform);
+	}
+
+
+	// graph.appendChild(svg.node());
 </script>
 
 </html>
